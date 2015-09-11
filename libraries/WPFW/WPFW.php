@@ -61,7 +61,27 @@ class WPFW {
 		if(session_id() == '') {
 			session_start();// session isn't started
     	}
+    	
+    	if(isset($data['environment'])
+		{
+			switch ($data['environment'])
+			{
+				case 'development':
+					error_reporting(E_ALL);
+					ini_set('display_errors', 1);
+				break;
 		
+				case 'testing':
+				case 'production':
+					error_reporting(0);
+				break;
+		
+				default:
+					exit('The application environment is not set correctly.');
+			}
+		}
+
+    	
 		add_action('init',array($this,'wpinit'));
 		add_action('shutdown',array($this,'wpshotdown'));
 		add_action('admin_head', array($this,'wphead'));

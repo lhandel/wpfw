@@ -1,18 +1,17 @@
 <?php
 /*
-Plugin Name: Test2
+Plugin Name: WPFW Plugin
 Plugin URI: #	#
 Description: _#_
-Author: SocialWebGroup SWG AB
+Author: Ludwig Händel
 Version: 0.1
-Author URI: http://socialwebgroup.se
+Author URI: http://ludwighandel.se
 */
 
 
 
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+
 
 if(!class_exists('WPFW'))
 	include_once(dirname(__FILE__).'/libraries/WPFW/WPFW.php');
