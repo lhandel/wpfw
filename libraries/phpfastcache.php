@@ -6,7 +6,7 @@
  */
 
 
-require_once(dirname(__FILE__)."/driver.php");
+require_once(dirname(__FILE__)."/phpfastcache/driver.php");
 
 // short function
 if(!function_exists("__c")) {
@@ -30,7 +30,7 @@ class phpFastCache_instances {
 }
 
 // main class
-class phpFastCache {
+class phpfastcache {
 
     public static $storage = "PDO";
     public static $config = array(
@@ -320,7 +320,7 @@ class phpFastCache {
             self::$storage = $storage;
             $driver = "phpfastcache_".$storage;
         }
-        require_once(dirname(__FILE__)."/drivers/".$storage.".php");
+        require_once(dirname(__FILE__)."/phpfastcache/drivers/".$storage.".php");
 
         $this->option("storage",$storage);
 
@@ -434,8 +434,8 @@ class phpFastCache {
      * Not use autoload default of PHP and don't need to load all classes as default
      */
     private function isExistingDriver($class) {
-        if(file_exists(dirname(__FILE__)."/drivers/".$class.".php")) {
-            require_once(dirname(__FILE__)."/drivers/".$class.".php");
+        if(file_exists(dirname(__FILE__)."/phpfastcache/drivers/".$class.".php")) {
+            require_once(dirname(__FILE__)."/phpfastcache/drivers/".$class.".php");
             if(class_exists("phpfastcache_".$class)) {
                 return true;
             }

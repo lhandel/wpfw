@@ -1,8 +1,7 @@
 <?php
 /*
 Plugin Name: WPFW Plugin
-Plugin URI: #	#
-Description: _#_
+Description: MVC framework for wordpress plugins
 Author: Ludwig Händel
 Version: 0.1
 Author URI: http://ludwighandel.se
@@ -10,54 +9,41 @@ Author URI: http://ludwighandel.se
 
 
 
+include_once(dirname(__FILE__).'/libraries/WPFW/WPFW.php');
 
 
 
-if(!class_exists('WPFW'))
-	include_once(dirname(__FILE__).'/libraries/WPFW/WPFW.php');
+$config['environment'] = 'development';
+$config['base_url'] = dirname(__FILE__);
+$app = new WPFW($config);
 
-
-class Test2 extends WPFW{
-	
-	public function __construct($data){
-	
-		parent::__construct($data);
+$app->admin_menu(array(
+						array
+						(
+							'label'			=>'Your Plugin',
+							'controller'	=>'testCtrl',
+							'order'			=>44,
+							'children'		=> array
+							(
+								array
+								(
+									'label'		=>'Subpage1',
+									'controller'=>'child2Controller',
+								)
+							)
+						)
+				));
 		
-		$this->addMenuPage(array(
-			array
-			(
-				'label'			=>'Test Plugin 2',
-				'controller'	=>'startController3',
-				'order'			=>41,
-				'badge'			=>2
-			),
-			array
-			(
-				'label'			=>'Test Controller',
-				'controller'	=>'testCtrl',
-				'order'			=>42
-			)
-		));
+$app->shortcode(array
+				(
+					'name'			=>'testPlugin',
+					'controller'	=>'startController',
+				));
 		
-		// Add the pages
 		
-		$this->createMenu();
-	}
-	
-	public function runMenu(){
-		echo 'assad';
 		
-	}
-	
-}
-
-$config = array
-			(
-				'plugin_url'	=> plugins_url('',__FILE__),
-				'base_url'		=> dirname(__FILE__),
-			);
-
-$test2 = new Test2($config);
+// Execute plugin
+$app->run();
 
 
 //$bm->marker('shotdown');

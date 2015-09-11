@@ -53,16 +53,21 @@ class WPFW {
 	
 	private $_header = array();
 	
-	function __construct($data=array()){
+	function __construct($data=array())
+	{
+
 		$this->base_url = (isset($data['base_url']))? $data['base_url'] : '';
-		$this->plugin_url = (isset($data['plugin_url']))? $data['plugin_url'] : '';
+		if($this->base_url=='')
+		{
+			$this->_find_base_url();
+		}
 		$this->plugin_name = plugin_basename($this->base_url);
 		
 		if(session_id() == '') {
 			session_start();// session isn't started
     	}
     	
-    	if(isset($data['environment'])
+    	if(isset($data['environment']))
 		{
 			switch ($data['environment'])
 			{
@@ -88,6 +93,14 @@ class WPFW {
 		add_action('wp_head', array($this,'wphead'));
 	}
 	
+	private function _find_base_url()
+	{
+		$url = dirname(plugin_basename(__FILE__));
+		$url = explode('/', $url);
+		$plugin_name = $url[0];
+		return WP_PLUGIN_DIR.'/'.$plugin_name;
+	}
+	
 	function wpheader($data){
 		$this->_header[] = $data;
 	}
@@ -103,6 +116,16 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 		}
 	}
 	
+	function run()
+	{
+		// Execute shortcodes
+		$this->_createShortcode();
+		
+		// Execute admin menu
+		$this->_createMenu();
+		
+	}
+	
 	function wpinit(){
 		ob_start();
 	}
@@ -111,18 +134,15 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 		 try { while( @ob_end_flush() ); } catch( Exception $e ) {}
 	}
 	
-	function addMenuPage($add){
-		if(is_array($add)){				
-			foreach($add as $item){
-				$this->pages[] = $item;
-			}
-		}else{
-			$this->pages[] = $add;
+	function admin_menu($add){
+			
+		foreach($add as $item){
+			$this->pages[] = $item;
 		}
 		
 	}
 	
-	function createMenu(){		
+	private function _createMenu(){		
 		add_action( 'admin_menu', array($this,'_creatingMenu'));
 	}
 	
@@ -134,14 +154,27 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 		foreach($this->pages as $page){
 			
 			// Check if the file exists
-			if(isset($page['url'])){
+			if(isset($page['url']))
+			{
 				$file = $this->base_url.'/'.$page['url'];
-			}else{
+			}
+			else
+			{
 				if(file_exists($this->base_url.'/controller/'.strtolower($page['controller']).'.php'))
 				{
 					$file = $this->base_url.'/controller/'.strtolower($page['controller']).'.php';
 				}
+				elseif(file_exists($this->base_url.'/'.strtolower($page['controller']).'.php'))
+				{
+					$file = $this->base_url.'/'.strtolower($page['controller']).'.php';
+				}
+				else
+				{
+					trigger_error('Unable to find controller.');
+				}
 			}
+			
+
 			
 			if(file_exists($file))
 			{
@@ -151,7 +184,7 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 				
 				// Check so the class exists
 				if(class_exists($page['controller'])){
-						$slug= (isset($page['slug']))? $page['slug'] : $this->create_slug($page['label']);
+						$slug= (isset($page['slug']))? $page['slug'] : $this->create_slug($page['controller']);
 						$badge = (isset($page['badge']) && $page['badge']!=0)? '<span class=\'update-plugins count-1\' title=\'title\'><span class=\'update-count\'>'.$page['badge'].'</span></span>': '';
 						// Create the menu-page
 						add_menu_page(
@@ -161,8 +194,8 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 										$slug, 
 										array
 										(
-											new $page['controller'](),
-											'initCtrl'
+											new $page['controller']($this),
+											'_initCtrl',
 										),
 										null,
 										$page['order']
@@ -172,26 +205,37 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 						{
 							foreach($page['children'] as $child)
 							{
+								if(isset($child['url']))
+								{
+									$file = $this->base_url.'/'.$child['url'];
+								}
+								else
+								{
+									if(file_exists($this->base_url.'/controller/'.strtolower($child['controller']).'.php'))
+									{
+										$file = $this->base_url.'/controller/'.strtolower($child['controller']).'.php';
+									}
+									elseif(file_exists($this->base_url.'/'.strtolower($child['controller']).'.php'))
+									{
+										$file = $this->base_url.'/'.strtolower($child['controller']).'.php';
+									}
+									else
+									{
+										trigger_error('Unable to find controller.');
+									}
+								}
 								// Check if file should be included and if it exits
-								if(isset($child['url']) && file_exists($this->base_url.'/'.$child['url']))
-									include_once($this->base_url.'/'.$child['url']);
+								if(file_exists($file))
+									include_once($file);
 								
 								if(isset($child['controller']) && class_exists($child['controller']))
 								{
 									$class = $child['controller'];
 									
-									if(!isset($child['method']) && method_exists($class,'index'))
-									{
-										$child['method'] = 'index';
-									}
 								}
-								else
-								{
-									$class = $page['controller'];
-								}	
 								
 							
-								$subslug= (isset($child['slug']))? $child['slug'] : $this->create_slug($child['label']);
+								$subslug= (isset($child['slug']))? $child['slug'] : $this->create_slug($child['controller']);
 						
 								add_submenu_page(
 										$slug, 
@@ -201,8 +245,8 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 										$subslug, 
 										array
 										(
-											new $class(),
-											$child['method']
+											new $class($this),
+											'_initCtrl',
 										)
 										);
 							}	
@@ -222,22 +266,44 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 		return str_replace(array('å','ä','ö','Å','Ä','Ö',' ','!','#','&'), array('a','a','o','A','A','O','','','',''), $name);
 	}
 	
-	function addShortcode($add){
+	function shortcode($add){
 		$this->shortcode[] = $add;
 	}
 	
-	function createShortcode(){
+	private function _createShortcode(){
 		
 		foreach($this->shortcode as $sc){
 			
-			if(file_exists($this->base_url.'/'.$sc['url'])){
+			// Check if the file exists
+			if(isset($sc['url']))
+			{
+				$file = $this->base_url.'/'.$sc['url'];
+			}
+			else
+			{
+				if(file_exists($this->base_url.'/controller/'.strtolower($sc['controller']).'.php'))
+				{
+					$file = $this->base_url.'/controller/'.strtolower($sc['controller']).'.php';
+				}
+				elseif(file_exists($this->base_url.'/'.strtolower($sc['controller']).'.php'))
+				{
+					$file = $this->base_url.'/'.strtolower($sc['controller']).'.php';
+				}
+				else
+				{
+					trigger_error('Unable to find controller. ('.$file.')');
+				}
+			}
 				
-				include_once($this->base_url.'/'.$sc['url']);
+			
+			if(file_exists($file)){
+				
+				include_once($file);
 				
 				if(class_exists($sc['controller']))
 				{
 					
-					add_shortcode($sc['name'],array(new $sc['controller'](),'index'));
+					add_shortcode($sc['name'],array(new $sc['controller']($this),'_initCtrl'));
 				}
 			}
 			

@@ -1,16 +1,23 @@
 <?php
 class WPController {
 	
+	private $wpfw = null;
 	public $load;
-	public $cache;
 	public $base_url=null;
 	public $plugin_url=null;
 	
-	function WPController(){
+	function WPController($caller=''){
+		
+		// Set wpfw
+		if($caller!='')
+			$this->wpfw=$caller;
+			
+		$this->base_url = $this->wpfw->base_url;
 		$this->load=new WPLoad($this);	
-		$this->cache = new phpFastCache();
 	}
-	
+
+
+
 	function anchor($controller,$method){
 		$plugin_name = explode('/',$_GET['page']);
 
@@ -27,8 +34,16 @@ class WPController {
 		return $url;
 	}
 	
+		
+
 	// Controlling with method in class should be load
-	function initCtrl($arg){
+	function _initCtrl($arg){
+	
+		if(!is_admin())
+		{
+			ob_start();
+		}	
+			
 		// Check if a subpage should be load
 		if(isset($_GET['page']) && isset($_GET['page2']))
 		{
@@ -45,7 +60,20 @@ class WPController {
 				$this->index();
 			}
 			
+		}else{
+		
+			if(method_exists($this,'index')){
+				$this->index();
+			}
 		}
+		
+		// return view if not on admin page
+		if(!is_admin())
+		{
+			$contents = ob_get_contents();
+			ob_end_clean();
+			return $contents;
+		}	
 		
 	}
 	
