@@ -7,7 +7,13 @@ class WPModel  {
 	protected $_order_by = '';
 	protected $_order_type = '';
 	
+	public $wpdb = null;
 	
+	public function __construct(){
+		global $wpdb;
+		
+		$this->wpdb = $wpdb;
+	}
 		
 	
 }

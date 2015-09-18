@@ -1,9 +1,11 @@
 <?php
 if(!class_exists('WPFW')){
-/*
+
 class Benchmark{
 	
 	var $marker = array();
+	
+
 	
 	function marker($name){
 		$this->marker[$name] = microtime();
@@ -33,11 +35,11 @@ class Benchmark{
 	}
 	
 }
-*/
-include_once('WPController.php');
-include_once('WPLoader.php');
-include_once('WPModel.php');
-include_once('phpfastcache/phpfastcache.php');
+
+$bm = new Benchmark();
+$bm->marker('init');
+
+
 
 class WPFW {
 	
@@ -47,6 +49,8 @@ class WPFW {
 	
 	private $shortcode = array();
 	
+	private $style = array();
+	
 	public $plugin_name;
 	public $base_url;
 	public $plugin_url;
@@ -55,16 +59,16 @@ class WPFW {
 	
 	function __construct($data=array())
 	{
-
-		$this->base_url = (isset($data['base_url']))? $data['base_url'] : '';
-		if($this->base_url=='')
-		{
-			$this->_find_base_url();
-		}
+		include_once('WPController.php');
+		include_once('WPLoader.php');
+		include_once('WPModel.php');
+		
+		$this->base_url = (isset($data['base_url']))? $data['base_url'] : $this->_find_base_url();
+		$this->plugin_url = (isset($data['base_url']))? $data['base_url'] : $this->_find_base_url();
 		$this->plugin_name = plugin_basename($this->base_url);
 		
 		if(session_id() == '') {
-			session_start();// session isn't started
+			session_start();// session not started
     	}
     	
     	if(isset($data['environment']))
@@ -91,6 +95,7 @@ class WPFW {
 		add_action('shutdown',array($this,'wpshotdown'));
 		add_action('admin_head', array($this,'wphead'));
 		add_action('wp_head', array($this,'wphead'));
+		
 	}
 	
 	private function _find_base_url()
@@ -100,9 +105,17 @@ class WPFW {
 		$plugin_name = $url[0];
 		return WP_PLUGIN_DIR.'/'.$plugin_name;
 	}
+	private function _find_plugin_url()
+	{
+		$url = dirname(plugin_basename(__FILE__));
+		$url = explode('/', $url);
+		$plugin_name = $url[0];
+		return WP_PLUGIN_URL.'/'.$plugin_name;
+	}
 	
 	function wpheader($data){
 		$this->_header[] = $data;
+
 	}
 	
 	function wphead(){
@@ -114,23 +127,35 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 		foreach($this->_header as $data){
 			echo $data;
 		}
+		
 	}
 	
 	function run()
 	{
-		// Execute shortcodes
-		$this->_createShortcode();
+		if(is_admin())
+		{
+			// Execute admin menu
+			$this->_createMenu();
+			add_action( 'admin_enqueue_scripts', array($this,'_loadstyle'));
+			add_action('login_enqueue_scripts', array($this,'_loadstyle'));
+		}
+		else
+		{
+			// Execute shortcodes
+			$this->_createShortcode();
+			add_action( 'wp_enqueue_scripts', '_loadstyle' );
+		}
 		
-		// Execute admin menu
-		$this->_createMenu();
 		
 	}
+
 	
 	function wpinit(){
 		ob_start();
 	}
 	
 	function wpshotdown(){
+	
 		 try { while( @ob_end_flush() ); } catch( Exception $e ) {}
 	}
 	
@@ -142,15 +167,58 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 		
 	}
 	
+	
+	
+	
 	private function _createMenu(){		
 		add_action( 'admin_menu', array($this,'_creatingMenu'));
+		
+	}
+	
+	public function admin_style($style){
+		
+		if(!is_array($style))
+			$style = array($style);
+		
+		$this->style['admin'] = $style;
+	}
+	public function front_style($style){
+		
+		if(!is_array($style))
+			$style = array($style);
+			
+		$this->style['front'] = $style;
+	}
+	
+	public function _loadstyle($style){
+	
+		$styles = array();
+		if(is_admin() && !empty($this->style['admin']))
+		{
+			$styles = $this->style['admin'];
+		}
+		elseif(!empty($this->style['front']))
+		{
+			$styles = $this->style['front'];
+		}
+		
+		foreach($styles as $style)
+		{
+			if(is_array($style)){
+				
+			}else{
+				wp_enqueue_style($this->create_slug($style), $this->plugin_url.'/'.$style);
+			}
+		}
+		
+		
 	}
 	
 	/*
 	 * Creating the wordpress admin menus from the pages in the array pages
 	*/
 	function _creatingMenu(){
-		
+	
 		foreach($this->pages as $page){
 			
 			// Check if the file exists
@@ -205,6 +273,7 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 						{
 							foreach($page['children'] as $child)
 							{
+								// Find the file
 								if(isset($child['url']))
 								{
 									$file = $this->base_url.'/'.$child['url'];
@@ -224,19 +293,21 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 										trigger_error('Unable to find controller.');
 									}
 								}
+								
 								// Check if file should be included and if it exits
 								if(file_exists($file))
 									include_once($file);
 								
+								
 								if(isset($child['controller']) && class_exists($child['controller']))
 								{
 									$class = $child['controller'];
-									
 								}
 								
 							
 								$subslug= (isset($child['slug']))? $child['slug'] : $this->create_slug($child['controller']);
 						
+								// Add subpage
 								add_submenu_page(
 										$slug, 
 										$child['label'], 

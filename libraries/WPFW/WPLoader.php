@@ -5,12 +5,15 @@ class WPLoad{
 	private $wpfw;
 	public $load;
 	
-	function WPLoad(&$ad){
+	
+	
+	function WPLoad(&$ad,$wpfw){
 		$this->caller = $ad;
 		$this->load = $this;
+		$this->wpfw = $wpfw;
 	}
 	
-
+	
 	public function library($class,$args=array()){
 		
 		
@@ -26,19 +29,19 @@ class WPLoad{
 		$this->caller->$class = new $class();
 		
 	}
-	
+
 	public function view($view,$data=array())
 	{
 		$base=dirname(__FILE__);
 			
-		
 		if(file_exists($this->caller->base_url.'/view/'.$view.'.php'))
 			$file = $this->caller->base_url.'/view/'.$view.'.php';
 		elseif(file_exists($this->caller->base_url.'/'.$view.'.php'))
 			$file = $this->caller->base_url.'/'.$view.'.php';
 		else
 			return false;
-
+			
+		
 		
 		if(isset($data))
 			 extract($data);

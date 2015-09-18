@@ -1,12 +1,11 @@
-<?php
+<?php defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
+
 class testCtrl extends WPController{
 	
 	function index(){
-	
-	
 		
-	
-			$this->load->library('phpfastcache');
+			
+		$this->load->library('phpfastcache');
 		
 		$name = $this->phpfastcache->get('name');
 
@@ -23,12 +22,9 @@ class testCtrl extends WPController{
 
 		$this->load->model('news_m');
 		$data['string'] = $this->news_m->getBy();
+		// Load style to the page
 		
 		$this->load->view('welcome',$data);
 	}
-	
-	
-	function listPage(){
-			echo 'List page';
-	}
+		
 }
