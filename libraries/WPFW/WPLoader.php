@@ -30,7 +30,7 @@ class WPLoad{
 		
 	}
 
-	public function view($view,$data=array())
+	public function view($view,$data=array(),$return=false)
 	{
 		$base=dirname(__FILE__);
 			

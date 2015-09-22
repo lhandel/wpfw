@@ -143,7 +143,7 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 		{
 			// Execute shortcodes
 			$this->_createShortcode();
-			add_action( 'wp_enqueue_scripts', '_loadstyle' );
+			add_action( 'wp_enqueue_scripts', array($this,'_loadstyle' ));
 		}
 		
 		
@@ -190,7 +190,7 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 		$this->style['front'] = $style;
 	}
 	
-	public function _loadstyle($style){
+	public function _loadstyle(){
 	
 		$styles = array();
 		if(is_admin() && !empty($this->style['admin']))
@@ -265,7 +265,7 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 											new $page['controller']($this),
 											'_initCtrl',
 										),
-										null,
+										(isset($page['icon']))? $page['icon'] : null,
 										$page['order']
 										); 
 										

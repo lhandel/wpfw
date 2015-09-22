@@ -19,9 +19,10 @@ $app = new WPFW($config);
 $app->admin_menu(array(
 					array
 					(
-						'label'			=>'Your Plugin',
-						'controller'	=>'testCtrl',
-						'order'			=>44,
+						'label'			=> 'Your Plugin',
+						'controller'	=> 'testCtrl',
+						'order'			=> 44,
+						'icon'			=> 'dashicons-palmtree',
 						'children'		=> array
 						(
 							array
@@ -39,14 +40,20 @@ $app->shortcode(array
 					'name'			=>'testPlugin',
 					'controller'	=>'startController',
 				));
+				
+$app->shortcode(array
+				(
+					'name'			=>'registerMember',
+					'controller'	=>'memberController',
+				));
 		
 		
 
 // Set style for admin page
-$app->admin_style(array('asset/css/admin.css','asset/css/admin.css2'));
+$app->admin_style(array('asset/css/admin.css','asset/css/admin.css'));
 
 // Set style for front page
-$app->front_style('asset/css/admin.css');
+$app->front_style('asset/css/front.css');
 
 // Execute plugin
 $app->run();
