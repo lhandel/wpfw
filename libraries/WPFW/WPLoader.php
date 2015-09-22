@@ -34,8 +34,8 @@ class WPLoad{
 	{
 		$base=dirname(__FILE__);
 			
-		if(file_exists($this->caller->base_url.'/view/'.$view.'.php'))
-			$file = $this->caller->base_url.'/view/'.$view.'.php';
+		if(file_exists($this->caller->base_url.'/views/'.$view.'.php'))
+			$file = $this->caller->base_url.'/views/'.$view.'.php';
 		elseif(file_exists($this->caller->base_url.'/'.$view.'.php'))
 			$file = $this->caller->base_url.'/'.$view.'.php';
 		else

@@ -228,9 +228,9 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 			}
 			else
 			{
-				if(file_exists($this->base_url.'/controller/'.strtolower($page['controller']).'.php'))
+				if(file_exists($this->base_url.'/controllers/'.strtolower($page['controller']).'.php'))
 				{
-					$file = $this->base_url.'/controller/'.strtolower($page['controller']).'.php';
+					$file = $this->base_url.'/controllers/'.strtolower($page['controller']).'.php';
 				}
 				elseif(file_exists($this->base_url.'/'.strtolower($page['controller']).'.php'))
 				{
@@ -280,9 +280,9 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 								}
 								else
 								{
-									if(file_exists($this->base_url.'/controller/'.strtolower($child['controller']).'.php'))
+									if(file_exists($this->base_url.'/controllers/'.strtolower($child['controller']).'.php'))
 									{
-										$file = $this->base_url.'/controller/'.strtolower($child['controller']).'.php';
+										$file = $this->base_url.'/controllers/'.strtolower($child['controller']).'.php';
 									}
 									elseif(file_exists($this->base_url.'/'.strtolower($child['controller']).'.php'))
 									{
@@ -352,9 +352,9 @@ var WPFW = {"ajaxurl":"'.admin_url( 'admin-ajax.php').'"};
 			}
 			else
 			{
-				if(file_exists($this->base_url.'/controller/'.strtolower($sc['controller']).'.php'))
+				if(file_exists($this->base_url.'/controllers/'.strtolower($sc['controller']).'.php'))
 				{
-					$file = $this->base_url.'/controller/'.strtolower($sc['controller']).'.php';
+					$file = $this->base_url.'/controllers/'.strtolower($sc['controller']).'.php';
 				}
 				elseif(file_exists($this->base_url.'/'.strtolower($sc['controller']).'.php'))
 				{
